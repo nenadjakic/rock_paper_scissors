@@ -12,6 +12,7 @@ use crate::game_result::GameResult;
 use crate::game_type::GameType;
 use crate::AppStep::MainMenu;
 use console::{style, Term};
+use log::{debug, info, warn};
 use rand::rngs::ThreadRng;
 use rand::Rng;
 use crate::app_step::AppStep;
@@ -35,6 +36,7 @@ fn get_main_menu(term: &Term) -> main_action::MainAction {
             }
             Err(err) => {
                 term.write_line(&format!("{}", style(err.0).red())).unwrap();
+                warn!("User choose illegal character");
             }
         };
     }
@@ -49,6 +51,7 @@ fn parse_player_move(term: &Term, game_type: &GameType) -> GameMove {
             }
             Err(err) => {
                 term.write_line(&format!("{}", style(err.0).red())).unwrap();
+                warn!("User choose illegal character");
             }
         }
     }
@@ -85,6 +88,7 @@ fn write_game_statistics(term: &Term, wins: &u32, loses: &u32, ties: &u32) {
                              style(wins).cyan().bold(),
                              style(loses).cyan().bold(),
                              style(ties).cyan().bold())).unwrap();
+    info!("Game result (total/wins/loses/ties): {0}/{1}/{2}/{3}", wins + loses + ties, wins, loses, ties);
 }
 
 fn do_game() -> io::Result<()> {
@@ -112,18 +116,22 @@ fn do_game() -> io::Result<()> {
                         game_type = x;
 
                         term.write_line(&format!("You choose: {}", style(&game_type.get_name()).bold())).unwrap();
+                        info!("User choose {:?} game", &game_type);
                         write_empty_line(&term);
                     }
                 };
             }
             AppStep::GameInProgress => {
                 let player_move = parse_player_move(&term, &game_type);
+                info!("User choose: {:?}.", &player_move);
                 if player_move == GameMove::QUIT {
                     game_step = AppStep::GameFinished;
                     continue;
                 }
                 let computer_move = get_computer_move(&game_type, &mut rng);
+                info!("Computer choose: {:?}.", &computer_move);
                 let game_result = player_move.beats_other(&game_type, &computer_move);
+                info!("Game result: {:?}", &game_result);
                 let result_message = match  game_result {
                     GameResult::WIN => {
                         wins += 1;
@@ -151,9 +159,11 @@ fn do_game() -> io::Result<()> {
                 wins = 0;
                 loses = 0;
                 ties = 0;
+                info!("Game finished.");
             }
             AppStep::AppClosing => {
                 term.write_line("Bye, bye").unwrap();
+                info!("App finished.");
                 break;
             }
         }
@@ -162,6 +172,20 @@ fn do_game() -> io::Result<()> {
     Ok(())
 }
 
+fn init_logging() {
+    let log4rs_result = log4rs::init_file("logging_config.yaml", Default::default());
+    match log4rs_result {
+        Err(x) => {
+            println!("{:?}", x);
+        }
+        _ => {
+            debug!("Logging init.");
+        }
+    }
+}
 fn main() {
+    init_logging();
+    info!("Application started.");
+
     do_game().unwrap();
 }

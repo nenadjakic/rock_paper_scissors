@@ -111,7 +111,7 @@ pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>) {
                             ..default()
                         }));
 
-                    parent.spawn(TextBundle::from_section("Downloaded from web site: https://fonts.google.com/, free for use licence.", body_style.clone())
+                    parent.spawn(TextBundle::from_section("Downloaded from web site: https://fonts.google.com/, licensed under Open Font Licence.", body_style.clone())
                         .with_style(Style {
                             margin: body_margin.clone(),
                             ..default()

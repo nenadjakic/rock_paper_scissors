@@ -16,6 +16,6 @@ lto = "thin"
 
 [dependencies]
 bevy = "0.11.0"
-bevy_kira_audio = "0.16"
+bevy_kira_audio = "0.16.0"
 once_cell = "1.18.0"
 rand = "0.8.5"

@@ -84,14 +84,18 @@ impl GameMove {
                 if value == 4 {
                     if game_type == GameType::SpockLizard {
                         Some(Spock)
-                    } else {
+                    } else if game_type == GameType::FireWater {
                         Some(Fire)
+                    } else {
+                        None
                     }
                 } else if value == 5 {
                     if game_type == GameType::SpockLizard {
                         Some(Lizard)
-                    } else {
+                    } else if game_type == GameType::FireWater {
                         Some(Water)
+                    } else {
+                        None
                     }
                 } else {
                     None
@@ -158,5 +162,35 @@ impl GameMove {
                 ""
             }
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::game_type::GameType::{FireWater, Normal, SpockLizard};
+    use super::*;
+
+    #[test]
+    fn test_from_i32() {
+        assert_eq!(GameMove::from_i32(Normal, 1), Some(Rock));
+        assert_eq!(GameMove::from_i32(Normal, 2), Some(Paper));
+        assert_eq!(GameMove::from_i32(Normal, 3), Some(Scissors));
+        assert_eq!(GameMove::from_i32(Normal, 4), None);
+        assert_eq!(GameMove::from_i32(SpockLizard, 4), Some(Spock));
+        assert_eq!(GameMove::from_i32(FireWater, 4), Some(Fire));
+        assert_eq!(GameMove::from_i32(Normal, 6), None);
+    }
+
+    #[test]
+    fn test_beats_other() {
+        assert_eq!(Rock.beats_other(&GameType::Normal, &Paper), GameResult::Lose);
+        assert_eq!(Rock.beats_other(&GameType::Normal, &Rock), GameResult::Draw);
+        assert_eq!(Scissors.beats_other(&GameType::Normal, &Paper), GameResult::Win);
+    }
+
+    #[test]
+    fn test_get_phrase() {
+        assert_eq!(GameMove::get_phrase(&Rock, &Paper), "Paper covers Rock.");
+        assert_eq!(GameMove::get_phrase(&Rock, &Rock), "");
     }
 }

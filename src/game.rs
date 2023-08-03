@@ -85,7 +85,7 @@ pub fn setup_game_screen(mut commands: Commands, mut game_state: ResMut<NextStat
                 .with_children(|parent| {
                     parent.spawn(
                         TextBundle::from_section(
-                            game_type.get_friendly_title(),
+                            game_type.get_friendly_name(),
                             TextStyle {
                                 font_size: TITLE_SIZE,
                                 color: TITLE_COLOR,
@@ -428,7 +428,7 @@ pub fn switch_game_move(keyboard_input: Res<Input<KeyCode>>,
     } else if keyboard_input.just_pressed(KeyCode::Right) {
         left_or_down = true;
 
-        if selected_option.value < game_type.max_number_of_move() {
+        if selected_option.value < game_type.max_number_of_moves() {
             selected_option.value += 1;
         }
     }
@@ -546,7 +546,7 @@ pub fn confirm_game_move(keyboard_input: Res<Input<KeyCode>>,
 
 fn get_computer_move(game_type: &GameType) -> GameMove {
     let mut rng = rand::thread_rng();
-    let random_value = rng.gen_range(1..=game_type.max_number_of_move());
+    let random_value = rng.gen_range(1..=game_type.max_number_of_moves());
     match random_value {
         1 => GameMove::Rock,
         2 => GameMove::Paper,

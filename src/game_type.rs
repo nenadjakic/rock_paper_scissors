@@ -1,44 +1,37 @@
-#[derive(Debug, PartialEq)]
+use bevy::prelude::*;
+
+#[derive(Component, Resource, Debug, PartialEq, Eq, Default, Copy, Clone)]
 pub enum GameType {
+    #[default]
+    None,
     Normal,
     SpockLizard,
-    FireWater,
+    FireWater
 }
-
 impl GameType {
-    pub fn get_move_menu(&self) -> String {
-        let shared_text = r#"
-Enter your move:
-
-R|r Rock
-P|p Paper
-S|s Scissors
-"#
-        .to_string();
-
-        (match self {
-            GameType::Normal => shared_text,
-            GameType::SpockLizard => {
-                shared_text
-                    + r#"O|o Spock
-L|l Lizard
-"#
-            }
-            GameType::FireWater => {
-                shared_text
-                    + r#"F|f Fire
-W|w Water
-"#
-            }
-        }) + r#"
-Q|q Finish game"#
+    pub fn max_number_of_moves(&self) -> i32 {
+        match self {
+            GameType::Normal => 3,
+            _ => 5
+        }
     }
 
-    pub fn get_name(&self) -> String {
+    pub fn get_friendly_name(&self) -> &str {
         match self {
-            GameType::Normal => "Normal game".to_string(),
-            GameType::SpockLizard => "Spock-lizard variation".to_string(),
-            GameType::FireWater => "Fire-water variation".to_string(),
+            GameType::Normal => "rock paper scissors",
+            GameType::SpockLizard => "Spock lizard variation",
+            GameType::FireWater => "fire water variation",
+            _ => "None"
+        }
+    }
+}
+impl Into<GameType> for i32 {
+    fn into(self) -> GameType {
+        match self {
+            1 => GameType::Normal,
+            2 => GameType::SpockLizard,
+            3 => GameType::FireWater,
+            _ => GameType::None,
         }
     }
 }
@@ -48,36 +41,25 @@ mod tests {
     use crate::game_type::GameType;
 
     #[test]
-    fn test_get_move_menu() {
-        let actual_normal = GameType::Normal.get_move_menu();
-        let actual_spock = GameType:: SpockLizard.get_move_menu();
-        let actual_fire = GameType:: FireWater.get_move_menu();
-
-        assert_eq!(actual_normal.lines().count(), 8);
-        test_normal_move_menu(actual_normal.as_str());
-
-        assert_eq!(actual_spock.lines().count(), 10);
-        test_normal_move_menu(actual_spock.as_str());
-        assert!(actual_spock.contains("O|o"));
-        assert!(actual_spock.contains("L|l"));
-
-        assert_eq!(actual_fire.lines().count(), 10);
-        test_normal_move_menu(actual_fire.as_str());
-        assert!(actual_fire.contains("F|f"));
-        assert!(actual_fire.contains("W|w"));
+    fn test_max_number_of_moves() {
+        assert_eq!(GameType::Normal.max_number_of_moves(), 3);
+        assert_eq!(GameType::SpockLizard.max_number_of_moves(), 5);
+        assert_eq!(GameType::FireWater.max_number_of_moves(), 5);
     }
 
     #[test]
-    fn test_get_name() {
-        assert_eq!(GameType::Normal.get_name(), "Normal game");
-        assert_eq!(GameType::SpockLizard.get_name(), "Spock-lizard variation");
-        assert_eq!(GameType::FireWater.get_name(), "Fire-water variation");
+    fn test_get_friendly_name() {
+        assert_eq!(GameType::Normal.get_friendly_name(), "rock paper scissors");
+        assert_eq!(GameType::SpockLizard.get_friendly_name(), "Spock lizard variation");
+        assert_eq!(GameType::FireWater.get_friendly_name(), "fire water variation");
+        assert_eq!(GameType::None.get_friendly_name(), "None");
     }
 
-    fn test_normal_move_menu(actual: &str) {
-        assert!(actual.contains("Q|q"));
-        assert!(actual.contains("R|r"));
-        assert!(actual.contains("P|p"));
-        assert!(actual.contains("S|s"));
+    #[test]
+    fn test_i32_into_game_type() {
+        assert_eq!(Into::<GameType>::into(1), GameType::Normal);
+        assert_eq!(Into::<GameType>::into(2), GameType::SpockLizard);
+        assert_eq!(Into::<GameType>::into(3), GameType::FireWater);
+        assert_eq!(Into::<GameType>::into(10), GameType::None);
     }
 }

@@ -1,56 +1,50 @@
-use crate::game_error::GameError;
+use std::collections::HashMap;
+use bevy::prelude::*;
+use once_cell::sync::Lazy;
+use crate::game_move::GameMove::*;
 use crate::game_result::GameResult;
 use crate::game_type::GameType;
-use once_cell::sync::Lazy;
-use std::collections::HashMap;
-use crate::game_move::GameMove::{FIRE, LIZARD, PAPER, QUIT, ROCK, SCISSORS, SPOCK, WATER};
 
-pub trait MoveTrait {
-    fn get_name(&self) -> String;
-    fn get_ascii_image() -> String;
-}
-
-#[derive(Clone, Debug, Copy, PartialEq, Eq, Hash)]
+#[derive(Component, Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum GameMove {
-    ROCK,
-    PAPER,
-    SCISSORS,
-    SPOCK,
-    LIZARD,
-    FIRE,
-    WATER,
-    QUIT,
+    Rock,
+    Paper,
+    Scissors,
+    Spock,
+    Lizard,
+    Fire,
+    Water,
 }
 
 static NORMAL_MATRIX: Lazy<HashMap<GameMove, Vec<GameMove>>> = Lazy::new(|| {
     HashMap::from([
-        (ROCK, Vec::from([SCISSORS])),
-        (PAPER, Vec::from([ROCK])),
-        (SCISSORS, Vec::from([PAPER])),
+        (Rock, Vec::from([Scissors])),
+        (Paper, Vec::from([Rock])),
+        (Scissors, Vec::from([Paper])),
     ])
 });
 
 static SPOCK_LIZARD_MATRIX: Lazy<HashMap<GameMove, Vec<GameMove>>> = Lazy::new(|| {
     HashMap::from([
         (
-            ROCK,
-            Vec::from([SCISSORS, LIZARD]),
+            Rock,
+            Vec::from([Scissors, Lizard]),
         ),
         (
-            PAPER,
-            Vec::from([ROCK, SPOCK]),
+            Paper,
+            Vec::from([Rock, Spock]),
         ),
         (
-            SCISSORS,
-            Vec::from([PAPER, LIZARD]),
+            Scissors,
+            Vec::from([Paper, Lizard]),
         ),
         (
-            SPOCK,
-            Vec::from([ROCK, SCISSORS]),
+            Spock,
+            Vec::from([Rock, Scissors]),
         ),
         (
-            LIZARD,
-            Vec::from([PAPER, SPOCK]),
+            Lizard,
+            Vec::from([Paper, Spock]),
         ),
     ])
 });
@@ -58,135 +52,112 @@ static SPOCK_LIZARD_MATRIX: Lazy<HashMap<GameMove, Vec<GameMove>>> = Lazy::new(|
 static FIRE_WATER_MATRIX: Lazy<HashMap<GameMove, Vec<GameMove>>> = Lazy::new(|| {
     HashMap::from([
         (
-            ROCK,
-            Vec::from([SCISSORS, FIRE]),
+            Rock,
+            Vec::from([Scissors, Fire]),
         ),
         (
-            PAPER,
-            Vec::from([ROCK, WATER]),
+            Paper,
+            Vec::from([Rock, Water]),
         ),
         (
-            SCISSORS,
-            Vec::from([PAPER]),
+            Scissors,
+            Vec::from([Paper]),
         ),
         (
-            FIRE,
-            Vec::from([PAPER, SCISSORS]),
+            Fire,
+            Vec::from([Paper, Scissors]),
         ),
         (
-            WATER,
-            Vec::from([ROCK, SCISSORS, FIRE]),
+            Water,
+            Vec::from([Rock, Scissors, Fire]),
         ),
     ])
 });
 
 impl GameMove {
-    pub fn parse_game_move(game_type: &GameType, input: char) -> Result<GameMove, GameError> {
-        match input {
-            'Q' | 'q' => Ok(QUIT),
-            'P' | 'p' => Ok(PAPER),
-            'R' | 'r' => Ok(ROCK),
-            'S' | 's' => Ok(SCISSORS),
-            'O' | 'o' => {
-                if *game_type != GameType::SpockLizard {
-                    Err(GameError("Wrong character! Please try again.".to_string()))
+    pub fn from_i32(game_type: GameType, value: i32) -> Option<GameMove> {
+        match value {
+            1 => Some(Rock),
+            2 => Some(Paper),
+            3 => Some(Scissors),
+            _ => {
+                if value == 4 {
+                    if game_type == GameType::SpockLizard {
+                        Some(Spock)
+                    } else if game_type == GameType::FireWater {
+                        Some(Fire)
+                    } else {
+                        None
+                    }
+                } else if value == 5 {
+                    if game_type == GameType::SpockLizard {
+                        Some(Lizard)
+                    } else if game_type == GameType::FireWater {
+                        Some(Water)
+                    } else {
+                        None
+                    }
                 } else {
-                    Ok(SPOCK)
+                    None
                 }
             }
-            'L' | 'l' => {
-                if *game_type != GameType::SpockLizard {
-                    Err(GameError("Wrong character! Please try again.".to_string()))
-                } else {
-                    Ok(LIZARD)
-                }
-            }
-            'F' | 'f' => {
-                if *game_type != GameType::FireWater {
-                    Err(GameError("Wrong character! Please try again.".to_string()))
-                } else {
-                    Ok(FIRE)
-                }
-            }
-            'W' | 'w' => {
-                if *game_type != GameType::FireWater {
-                    Err(GameError("Wrong character! Please try again.".to_string()))
-                } else {
-                    Ok(WATER)
-                }
-            }
-            _ => Err(GameError(
-                "Unknown character! Please try again.".to_string(),
-            )),
         }
     }
 
     pub fn beats_other(&self, game_type: &GameType, other: &GameMove) -> GameResult {
         if self == other {
-            return GameResult::TIE;
+            return GameResult::Draw;
         } else {
             let x = match game_type {
                 GameType::Normal => &NORMAL_MATRIX,
                 GameType::SpockLizard => &SPOCK_LIZARD_MATRIX,
                 GameType::FireWater => &FIRE_WATER_MATRIX,
+                _ => panic!("Incompatible game type. None cannot be used here."),
             };
             if x.get(self).unwrap().contains(other) {
-                GameResult::WIN
+                GameResult::Win
             } else {
-                GameResult::LOSE
+                GameResult::Lose
             }
         }
     }
 
-    pub fn get_friendly_name(&self) -> String {
-        String::from(match self {
-            ROCK => "Rock",
-            PAPER => "Paper",
-            SCISSORS => "Scissors",
-            SPOCK => "Spock",
-            LIZARD => "Lizard",
-            FIRE => "Fire",
-            WATER => "Water",
-            GameMove::QUIT => "Quit"
-        })
-    }
-
     pub fn get_phrase (first: &GameMove, second: &GameMove) -> String {
         String::from(
-            if (*first == ROCK && *second == PAPER) || (*second == ROCK && *first == PAPER) {
-                "Paper covers rock."
-            } else if (*first == ROCK && *second == SCISSORS) || (*second == ROCK && *first == SCISSORS) {
-                "Rock crushes scissors."
-            } else if (*first == ROCK && *second == LIZARD) || (*second == ROCK && *first == LIZARD) {
-                "Rock crushes lizard."
-            } else if (*first == ROCK && *second == SPOCK) || (*second == ROCK && *first == SPOCK) {
-                "Spock vaporizes rock."
-            } else if (*first == ROCK && *second == FIRE) || (*second == ROCK && *first == FIRE) {
-                "Rock pounds out fire."
-            } else if (*first == ROCK && *second == WATER) || (*second == ROCK && *first == WATER) {
-                "Water erodes rock"
-            } else if (*first == PAPER && *second == SCISSORS) || (*second == PAPER && *first == SCISSORS) {
-                "Scissors cuts paper."
-            } else if (*first == PAPER && *second == LIZARD) || (*second == PAPER && *first == LIZARD) {
-                "Lizard eats paper."
-            } else if (*first == PAPER && *second == SPOCK) || (*second == PAPER && *first == SPOCK) {
+            if (*first == Rock && *second == Paper) || (*second == Rock && *first == Paper) {
+                "Paper covers Rock."
+            } else if (*first == Rock && *second == Scissors) || (*second == Rock && *first == Scissors) {
+                "Rock crushes Scissors."
+            } else if (*first == Rock && *second == Lizard) || (*second == Rock && *first == Lizard) {
+                "Rock crushes Lizard."
+            } else if (*first == Rock && *second == Spock) || (*second == Rock && *first == Spock) {
+                "Spock vaporizes Rock."
+            } else if (*first == Rock && *second == Fire) || (*second == Rock && *first == Fire) {
+                "Rock pounds out Fire."
+            } else if (*first == Rock && *second == Water) || (*second == Rock && *first == Water) {
+                "Water erodes Rock"
+            } else if (*first == Paper && *second == Scissors) || (*second == Paper && *first == Scissors) {
+                "Scissors cuts Paper."
+            } else if (*first == Paper && *second == Lizard) || (*second == Paper && *first == Lizard) {
+                "Lizard eats Paper."
+            } else if (*first == Paper && *second == Spock) || (*second == Paper && *first == Spock) {
                 "Paper disproves Spock."
-            } else if (*first == PAPER && *second == FIRE) || (*second == PAPER && *first == FIRE) {
-                "Fire burns paper."
-            } else if (*first == PAPER && *second == WATER) || (*second == PAPER && *first == WATER) {
-                "Paper floats on water."
-            } else if (*first == SCISSORS && *second == LIZARD) || (*second == SCISSORS && *first == LIZARD) {
-                "Scissors decapitates lizard."
-            } else if (*first == SCISSORS && *second == SPOCK) || (*second == SCISSORS && *first == SPOCK) {
-                "Spock smashes scissors."
-            } else if (*first == SCISSORS && *second == FIRE) || (*second == SCISSORS && *first == FIRE) {
-                "Fire melts scissors."
-            } else if (*first == SCISSORS && *second == WATER) || (*second == SCISSORS && *first == WATER) {
-                "Water rusts scissors."
-            } else if (*first == LIZARD && *second == SPOCK) || (*second == LIZARD && *first == SPOCK) {
+            } else if (*first == Paper && *second == Fire) || (*second == Paper && *first == Fire) {
+                "Fire burns Paper."
+            } else if (*first == Paper && *second == Water) || (*second == Paper && *first == Water) {
+                "Paper floats on Water."
+            } else if (*first == Scissors && *second == Lizard) || (*second == Scissors && *first == Lizard) {
+                "Scissors decapitates Lizard."
+            } else if (*first == Scissors && *second == Spock) || (*second == Scissors && *first == Spock) {
+                "Spock smashes Scissors."
+            } else if (*first == Scissors && *second == Fire) || (*second == Scissors && *first == Fire) {
+                "Fire melts Scissors."
+            } else if (*first == Scissors && *second == Water) || (*second == Scissors && *first == Water) {
+                "Water rusts Scissors."
+            } else if (*first == Lizard && *second == Spock) || (*second == Lizard && *first == Spock) {
                 "Lizard poisons Spock."
-            } else if (*first == FIRE && *second == WATER) || (*second == FIRE && *first == WATER) {
-                "Water puts out fire."
+            } else if (*first == Fire && *second == Water) || (*second == Fire && *first == Water) {
+                "Water puts out Fire."
             } else {
                 ""
             }
@@ -196,30 +167,30 @@ impl GameMove {
 
 #[cfg(test)]
 mod tests {
+    use crate::game_type::GameType::{FireWater, Normal, SpockLizard};
     use super::*;
 
     #[test]
-    fn test_parse_game_move() {
-        let actual_normal_rock = GameMove::parse_game_move(&GameType::Normal, 'R');
-
-        assert!(actual_normal_rock.is_ok());
-        assert_eq!(actual_normal_rock.unwrap(), GameMove::ROCK);
-
-        let actual_normal_spock = GameMove::parse_game_move(&GameType::Normal, 'o');
-        assert!(actual_normal_spock.is_err());
+    fn test_from_i32() {
+        assert_eq!(GameMove::from_i32(Normal, 1), Some(Rock));
+        assert_eq!(GameMove::from_i32(Normal, 2), Some(Paper));
+        assert_eq!(GameMove::from_i32(Normal, 3), Some(Scissors));
+        assert_eq!(GameMove::from_i32(Normal, 4), None);
+        assert_eq!(GameMove::from_i32(SpockLizard, 4), Some(Spock));
+        assert_eq!(GameMove::from_i32(FireWater, 4), Some(Fire));
+        assert_eq!(GameMove::from_i32(Normal, 6), None);
     }
 
     #[test]
     fn test_beats_other() {
-        assert_eq!(ROCK.beats_other(&GameType::Normal, &PAPER), GameResult::LOSE);
-        assert_eq!(ROCK.beats_other(&GameType::Normal, &ROCK), GameResult::TIE);
-        assert_eq!(SCISSORS.beats_other(&GameType::Normal, &PAPER), GameResult::WIN);
+        assert_eq!(Rock.beats_other(&GameType::Normal, &Paper), GameResult::Lose);
+        assert_eq!(Rock.beats_other(&GameType::Normal, &Rock), GameResult::Draw);
+        assert_eq!(Scissors.beats_other(&GameType::Normal, &Paper), GameResult::Win);
     }
 
     #[test]
     fn test_get_phrase() {
-        assert_eq!(GameMove::get_phrase(&ROCK, &PAPER), "Paper covers rock.");
-        assert_eq!(GameMove::get_phrase(&ROCK, &ROCK), "");
+        assert_eq!(GameMove::get_phrase(&Rock, &Paper), "Paper covers Rock.");
+        assert_eq!(GameMove::get_phrase(&Rock, &Rock), "");
     }
-
 }

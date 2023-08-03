@@ -19,6 +19,17 @@ Images were downloaded from https://icons8.com/, under free for personal and com
 Sounds were downloaded from https://pixabay.com/, as free for use terms.
 Font were downloaded from https://fonts.google.com/, and it is licensed under the Open Font Licence.
 
+## How to play
+When start game, main menu will be open. 
+### Menu
+Use keys UP or DOWN to select option you want.
+Selected menu item has icon (joystick) in front of menu item text. To confirm selected item press SPACE or ENTER.
+### Game
+When you chose one of game mode (Normal, Spock lizard or Fire water), use LEFT and RIGHT arrow to select option you want.
+Selected option will have red border. To confirm selected option press SPACE or ENTER.
+### Other views
+Some other views have button with first char between brackets. Press char which is between brackets to confirm that action.
+
 ## Other release
 If you love more to play on terminal, try CLI version of this game. Checkout branch **cli_release**.
 

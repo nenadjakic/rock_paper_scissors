@@ -10,13 +10,13 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
-    name: test
+  Build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v3
-      - name: cache
+      - name: Cache
         uses: actions/cache@v3
         with:
           path: |
@@ -26,9 +26,56 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: install toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: install dependencies
+      - name: Install toolchain
+        run: |
+          rustup toolchain add stable
+      - name: Install dependencies
         run: sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
-      - name: run cargo test
+      - name: Build
+        run: cargo build
+  Test-coverage:
+    name: Test-coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install toolchain
+        run: |
+          rustup toolchain add nightly --component llvm-tools-preview
+          rustup override set nightly
+      - name: Install grcov
+        run: cargo install grcov --force
+      - name: Install dependencies
+        run: sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+      - name: Build
+        run: cargo build
+      - name: Test
+        env:
+          LLVM_PROFILE_FILE: "target/coverage/grcov-%p-%m.profraw"
+          RUSTFLAGS: -Cinstrument-coverage
         run: cargo test
+      - name: Generate code coverage
+        run: |
+          grcov $(find . -name "grcov-*.profraw" -print) \
+          --branch \
+          --ignore-not-existing \
+          --binary-path ./target/debug/ \
+          -s . \
+          -t lcov \
+          --ignore "/*" \
+          -o lcov.info
+      - name: Check code coverage
+        uses: VeryGoodOpenSource/very_good_coverage@v2
+        with:
+          path: lcov.info
+          min_coverage: 30.0

@@ -178,14 +178,28 @@ mod tests {
         assert_eq!(GameMove::from_i32(Normal, 4), None);
         assert_eq!(GameMove::from_i32(SpockLizard, 4), Some(Spock));
         assert_eq!(GameMove::from_i32(FireWater, 4), Some(Fire));
+        assert_eq!(GameMove::from_i32(SpockLizard, 5), Some(Lizard));
+        assert_eq!(GameMove::from_i32(FireWater, 5), Some(Water));
         assert_eq!(GameMove::from_i32(Normal, 6), None);
+        assert_eq!(GameMove::from_i32(SpockLizard, 6), None);
+        assert_eq!(GameMove::from_i32(FireWater, 6), None);
     }
 
     #[test]
     fn test_beats_other() {
         assert_eq!(Rock.beats_other(&GameType::Normal, &Paper), GameResult::Lose);
         assert_eq!(Rock.beats_other(&GameType::Normal, &Rock), GameResult::Draw);
+        assert_eq!(Rock.beats_other(&GameType::Normal, &Scissors), GameResult::Win);
         assert_eq!(Scissors.beats_other(&GameType::Normal, &Paper), GameResult::Win);
+
+        assert_eq!(Rock.beats_other(&GameType::SpockLizard, &Paper), GameResult::Lose);
+        assert_eq!(Rock.beats_other(&GameType::FireWater, &Paper), GameResult::Lose);
+    }
+
+    #[test]
+    #[should_panic(expected = "Incompatible game type. None cannot be used here.")]
+    fn test_beats_other_panic() {
+       Rock.beats_other(&GameType::None, &Paper);
     }
 
     #[test]

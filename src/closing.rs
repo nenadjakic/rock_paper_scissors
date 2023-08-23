@@ -1,5 +1,6 @@
 use bevy::app::AppExit;
 use bevy::prelude::*;
+
 use crate::common::*;
 
 #[derive(Component)]
@@ -47,7 +48,7 @@ fn setup_closing_screen(mut commands: Commands, asset_server: Res<AssetServer>) 
                         color: TITLE_COLOR,
                     },
                 )
-                    .with_text_alignment(TextAlignment::Center),
+                .with_text_alignment(TextAlignment::Center),
                 ClosingText,
             ));
         });
@@ -55,12 +56,7 @@ fn setup_closing_screen(mut commands: Commands, asset_server: Res<AssetServer>) 
     commands.insert_resource(ClosingTimer(Timer::from_seconds(CLOSING_DURATION, TimerMode::Once)));
 }
 
-fn closing(
-    mut query: Query<&mut Text, With<ClosingText>>,
-    mut app_exit_events: EventWriter<AppExit>,
-    time: Res<Time>,
-    mut timer: ResMut<ClosingTimer>,
-) {
+fn closing(mut query: Query<&mut Text, With<ClosingText>>, mut app_exit_events: EventWriter<AppExit>, time: Res<Time>, mut timer: ResMut<ClosingTimer>) {
     let min = 0.0;
     let max = CLOSING_DURATION;
 
@@ -73,7 +69,7 @@ fn closing(
 
             let alpha = 1.0 - ((milliseconds - min) / (max - min));
 
-            let mut new_color = TITLE_COLOR.clone();
+            let mut new_color = TITLE_COLOR;
             new_color.set_a(alpha);
             text.sections[0].style.color = new_color;
         }

@@ -4,6 +4,7 @@ pub enum GameResult {
     Lose,
     Draw,
 }
+
 impl GameResult {
     pub fn get_friendly_name(&self) -> String {
         match self {

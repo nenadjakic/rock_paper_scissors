@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_kira_audio::Audio;
 
 use crate::common::*;
+use crate::player_options::PlayerOptions;
 
 #[derive(Component)]
 pub struct OnCreditsScreen;
@@ -16,7 +17,7 @@ impl Plugin for CreditsPlugin {
     }
 }
 
-pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>) {
+pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>, player_options: Res<PlayerOptions>) {
     let font = &game_font.0;
     let header_style = TextStyle {
         font: font.clone(),
@@ -37,9 +38,11 @@ pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>) {
         .spawn((
             NodeBundle {
                 style: Style {
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::End,
+                    justify_content: JustifyContent::Start,
                     width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Column,
                     ..default()
                 },
                 ..default()
@@ -47,127 +50,145 @@ pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>) {
             OnCreditsScreen,
         ))
         .with_children(|parent| {
+            parent.spawn(
+                (TextBundle::from_section(
+                    player_options.name.clone(),
+                    TextStyle {
+                        font: font.clone(),
+                        font_size: 16.0,
+                        color: Color::WHITE,
+                    },
+                )
+                .with_text_alignment(TextAlignment::Right))
+                .with_style(Style {
+                    margin: UiRect::all(Val::Px(10.0)),
+                    ..default()
+                }),
+            );
             parent
                 .spawn(NodeBundle {
                     style: Style {
-                        flex_direction: FlexDirection::Column,
-                        align_items: AlignItems::Center,
                         width: Val::Percent(100.0),
-                        height: Val::Percent(55.0),
+                        height: Val::Percent(100.0),
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
                         ..default()
                     },
-                    background_color: MENU_BACKGROUND_COLOR.into(),
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn(
-                        TextBundle::from_section(
-                            "Credits",
-                            TextStyle {
-                                font_size: 40.0,
-                                color: TITLE_COLOR,
-                                font: font.clone(),
-                            },
-                        )
-                        .with_style(Style {
-                            margin: UiRect::new(Val::Px(20.0), Val::Px(20.0), Val::Px(30.0), Val::Px(40.0)),
-                            ..default()
-                        }),
-                    );
-
-                    parent.spawn(TextBundle::from_section("Author", header_style.clone()).with_style(Style {
-                        margin: header_margin,
-                        ..default()
-                    }));
-
-                    parent.spawn(TextBundle::from_section("Nenad Jakic", body_style.clone()).with_style(Style {
-                        margin: body_margin,
-                        ..default()
-                    }));
-
-                    parent.spawn(TextBundle::from_section("Images", header_style.clone()).with_style(Style {
-                        margin: header_margin,
-                        ..default()
-                    }));
-
-                    parent.spawn(
-                        TextBundle::from_section(
-                            "Downloaded from web site: https://icons8.com, free for personal and commercial use licence.",
-                            body_style.clone(),
-                        )
-                        .with_style(Style {
-                            margin: body_margin,
-                            ..default()
-                        }),
-                    );
-
-                    parent.spawn(TextBundle::from_section("Sounds", header_style.clone()).with_style(Style {
-                        margin: header_margin,
-                        ..default()
-                    }));
-
-                    parent.spawn(
-                        TextBundle::from_section("Downloaded from web site: https://pixabay.com/, free for use licence.", body_style.clone()).with_style(Style {
-                            margin: body_margin,
-                            ..default()
-                        }),
-                    );
-
-                    parent.spawn(TextBundle::from_section("Fonts", header_style.clone()).with_style(Style {
-                        margin: header_margin,
-                        ..default()
-                    }));
-
-                    parent.spawn(
-                        TextBundle::from_section("Downloaded from web site: https://fonts.google.com/, licensed under Open Font Licence.", body_style.clone()).with_style(Style {
-                            margin: body_margin,
-                            ..default()
-                        }),
-                    );
-
                     parent
-                        .spawn((NodeBundle {
+                        .spawn(NodeBundle {
                             style: Style {
-                                flex_direction: FlexDirection::Row,
-                                align_items: AlignItems::End,
-                                justify_content: JustifyContent::End,
-                                align_content: AlignContent::End,
+                                flex_direction: FlexDirection::Column,
+                                align_items: AlignItems::Center,
                                 width: Val::Percent(100.0),
-                                margin: UiRect::top(Val::Px(20.0)),
+                                height: Val::Percent(60.0),
                                 ..default()
                             },
+                            background_color: MENU_BACKGROUND_COLOR.into(),
                             ..default()
-                        },))
+                        })
                         .with_children(|parent| {
+                            parent.spawn(
+                                TextBundle::from_section(
+                                    "Credits",
+                                    TextStyle {
+                                        font_size: 40.0,
+                                        color: TITLE_COLOR,
+                                        font: font.clone(),
+                                    },
+                                )
+                                .with_style(Style {
+                                    margin: UiRect::new(Val::Px(20.0), Val::Px(20.0), Val::Px(30.0), Val::Px(40.0)),
+                                    ..default()
+                                }),
+                            );
+
+                            parent.spawn(TextBundle::from_section("Author", header_style.clone()).with_style(Style {
+                                margin: header_margin,
+                                ..default()
+                            }));
+
+                            parent.spawn(TextBundle::from_section("Nenad Jakic", body_style.clone()).with_style(Style { margin: body_margin, ..default() }));
+
+                            parent.spawn(TextBundle::from_section("Images", header_style.clone()).with_style(Style {
+                                margin: header_margin,
+                                ..default()
+                            }));
+
+                            parent.spawn(
+                                TextBundle::from_section(
+                                    "Downloaded from web site: https://icons8.com, free for personal and commercial use licence.",
+                                    body_style.clone(),
+                                )
+                                .with_style(Style { margin: body_margin, ..default() }),
+                            );
+
+                            parent.spawn(TextBundle::from_section("Sounds", header_style.clone()).with_style(Style {
+                                margin: header_margin,
+                                ..default()
+                            }));
+
+                            parent.spawn(
+                                TextBundle::from_section("Downloaded from web site: https://pixabay.com/, free for use licence.", body_style.clone())
+                                    .with_style(Style { margin: body_margin, ..default() }),
+                            );
+
+                            parent.spawn(TextBundle::from_section("Fonts", header_style.clone()).with_style(Style {
+                                margin: header_margin,
+                                ..default()
+                            }));
+
+                            parent.spawn(
+                                TextBundle::from_section("Downloaded from web site: https://fonts.google.com/, licensed under Open Font Licence.", body_style.clone())
+                                    .with_style(Style { margin: body_margin, ..default() }),
+                            );
+
                             parent
-                                .spawn(NodeBundle {
+                                .spawn((NodeBundle {
                                     style: Style {
-                                        width: Val::Px(250.0),
-                                        height: Val::Px(50.0),
-                                        margin: UiRect::all(Val::Px(10.0)),
-                                        border: UiRect::all(Val::Px(5.0)),
-                                        justify_content: JustifyContent::Center,
-                                        align_items: AlignItems::Center,
+                                        flex_direction: FlexDirection::Row,
+                                        align_items: AlignItems::End,
+                                        justify_content: JustifyContent::End,
+                                        align_content: AlignContent::End,
+                                        width: Val::Percent(100.0),
+                                        margin: UiRect::top(Val::Px(20.0)),
                                         ..default()
                                     },
-                                    border_color: Color::WHITE.into(),
                                     ..default()
-                                })
+                                },))
                                 .with_children(|parent| {
-                                    parent.spawn(
-                                        TextBundle::from_section(
-                                            "(B)ack",
-                                            TextStyle {
-                                                font_size: BUTTON_TEXT_SIZE,
-                                                color: BUTTON_TITLE_COLOR,
-                                                font: font.clone(),
+                                    parent
+                                        .spawn(NodeBundle {
+                                            style: Style {
+                                                width: Val::Px(250.0),
+                                                height: Val::Px(50.0),
+                                                margin: UiRect::all(Val::Px(10.0)),
+                                                border: UiRect::all(Val::Px(5.0)),
+                                                justify_content: JustifyContent::Center,
+                                                align_items: AlignItems::Center,
+                                                ..default()
                                             },
-                                        )
-                                        .with_style(Style {
-                                            margin: UiRect::all(Val::Px(10.0)),
+                                            border_color: Color::WHITE.into(),
                                             ..default()
-                                        }),
-                                    );
+                                        })
+                                        .with_children(|parent| {
+                                            parent.spawn(
+                                                TextBundle::from_section(
+                                                    "(B)ack",
+                                                    TextStyle {
+                                                        font_size: BUTTON_TEXT_SIZE,
+                                                        color: BUTTON_TITLE_COLOR,
+                                                        font: font.clone(),
+                                                    },
+                                                )
+                                                .with_style(Style {
+                                                    margin: UiRect::all(Val::Px(10.0)),
+                                                    ..default()
+                                                }),
+                                            );
+                                        });
                                 });
                         });
                 });

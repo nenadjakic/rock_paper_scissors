@@ -8,6 +8,7 @@ use crate::common::*;
 use crate::game_move::GameMove;
 use crate::game_result::GameResult;
 use crate::game_type::GameType;
+use crate::player_options::PlayerOptions;
 
 #[derive(Component)]
 pub struct OnGameScreen;
@@ -38,7 +39,14 @@ pub fn init_game_setup(mut game_state: ResMut<NextState<GameState>>) {
     game_state.set(GameState::PlayerMoveRender)
 }
 
-pub fn setup_game_screen(mut commands: Commands, mut game_state: ResMut<NextState<GameState>>, game_font: Res<GameFont>, game_images: Res<GameImages>, game_type: Res<GameType>) {
+pub fn setup_game_screen(
+    mut commands: Commands,
+    mut game_state: ResMut<NextState<GameState>>,
+    game_font: Res<GameFont>,
+    game_images: Res<GameImages>,
+    game_type: Res<GameType>,
+    player_options: Res<PlayerOptions>,
+) {
     let button_style = Style {
         width: Val::Px(250.0),
         height: Val::Px(250.0),
@@ -61,10 +69,11 @@ pub fn setup_game_screen(mut commands: Commands, mut game_state: ResMut<NextStat
         .spawn((
             NodeBundle {
                 style: Style {
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::End,
+                    justify_content: JustifyContent::Start,
                     width: Val::Percent(100.0),
                     height: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Column,
                     ..default()
                 },
                 ..default()
@@ -72,104 +81,132 @@ pub fn setup_game_screen(mut commands: Commands, mut game_state: ResMut<NextStat
             OnGameScreen,
         ))
         .with_children(|parent| {
+            parent.spawn(
+                (TextBundle::from_section(
+                    player_options.name.clone(),
+                    TextStyle {
+                        font: font.clone(),
+                        font_size: 16.0,
+                        color: Color::WHITE,
+                    },
+                )
+                .with_text_alignment(TextAlignment::Right))
+                .with_style(Style {
+                    margin: UiRect::all(Val::Px(10.0)),
+                    ..default()
+                }),
+            );
             parent
-                .spawn((NodeBundle {
+                .spawn(NodeBundle {
                     style: Style {
-                        flex_direction: FlexDirection::Column,
-                        align_items: AlignItems::Center,
                         width: Val::Percent(100.0),
-                        height: Val::Percent(50.0),
+                        height: Val::Percent(100.0),
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
                         ..default()
                     },
-                    background_color: MENU_BACKGROUND_COLOR.into(),
                     ..default()
-                },))
+                })
                 .with_children(|parent| {
-                    parent.spawn(
-                        TextBundle::from_section(
-                            game_type.get_friendly_name(),
-                            TextStyle {
-                                font_size: TITLE_SIZE,
-                                color: TITLE_COLOR,
-                                font: font.clone(),
+                    parent
+                        .spawn((NodeBundle {
+                            style: Style {
+                                flex_direction: FlexDirection::Column,
+                                align_items: AlignItems::Center,
+                                width: Val::Percent(100.0),
+                                height: Val::Percent(50.0),
+                                ..default()
                             },
-                        )
-                        .with_style(Style {
-                            margin: UiRect::all(Val::Px(20.0)),
+                            background_color: MENU_BACKGROUND_COLOR.into(),
                             ..default()
-                        }),
-                    );
-
-                    parent
-                        .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    flex_direction: FlexDirection::Row,
-                                    ..default()
-                                },
-                                ..default()
-                            },
-                            OnGamePanel,
-                        ))
+                        },))
                         .with_children(|parent| {
-                            spawn_game_move_button(parent, &button_style, true, GameMove::Rock, &button_icon_style, &game_images.rock);
-                            spawn_game_move_button(parent, &button_style, false, GameMove::Paper, &button_icon_style, &game_images.paper);
-                            spawn_game_move_button(parent, &button_style, false, GameMove::Scissors, &button_icon_style, &game_images.scissors);
-
-                            if *game_type == GameType::SpockLizard {
-                                spawn_game_move_button(parent, &button_style, false, GameMove::Spock, &button_icon_style, &game_images.spock);
-                                spawn_game_move_button(parent, &button_style, false, GameMove::Lizard, &button_icon_style, &game_images.lizard);
-                            } else if *game_type == GameType::FireWater {
-                                spawn_game_move_button(parent, &button_style, false, GameMove::Fire, &button_icon_style, &game_images.fire);
-                                spawn_game_move_button(parent, &button_style, false, GameMove::Water, &button_icon_style, &game_images.water);
-                            }
-                        });
-
-                    parent
-                        .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    flex_direction: FlexDirection::Row,
-                                    align_items: AlignItems::End,
-                                    justify_content: JustifyContent::End,
-                                    align_content: AlignContent::End,
-                                    width: Val::Percent(100.0),
+                            parent.spawn(
+                                TextBundle::from_section(
+                                    game_type.get_friendly_name(),
+                                    TextStyle {
+                                        font_size: TITLE_SIZE,
+                                        color: TITLE_COLOR,
+                                        font: font.clone(),
+                                    },
+                                )
+                                .with_style(Style {
+                                    margin: UiRect::all(Val::Px(20.0)),
                                     ..default()
-                                },
-                                ..default()
-                            },
-                            OnGamePanel,
-                        ))
-                        .with_children(|parent| {
+                                }),
+                            );
+
                             parent
-                                .spawn(NodeBundle {
-                                    style: Style {
-                                        width: Val::Px(250.0),
-                                        height: Val::Px(50.0),
-                                        margin: UiRect::all(Val::Px(10.0)),
-                                        border: UiRect::all(Val::Px(5.0)),
-                                        justify_content: JustifyContent::Center,
-                                        align_items: AlignItems::Center,
+                                .spawn((
+                                    NodeBundle {
+                                        style: Style {
+                                            flex_direction: FlexDirection::Row,
+                                            ..default()
+                                        },
                                         ..default()
                                     },
-                                    border_color: Color::WHITE.into(),
-                                    ..default()
-                                })
+                                    OnGamePanel,
+                                ))
                                 .with_children(|parent| {
-                                    parent.spawn(
-                                        TextBundle::from_section(
-                                            "(F)inish",
-                                            TextStyle {
-                                                font_size: BUTTON_TEXT_SIZE,
-                                                color: BUTTON_TITLE_COLOR,
-                                                font: font.clone(),
-                                            },
-                                        )
-                                        .with_style(Style {
-                                            margin: UiRect::all(Val::Px(10.0)),
+                                    spawn_game_move_button(parent, &button_style, true, GameMove::Rock, &button_icon_style, &game_images.rock);
+                                    spawn_game_move_button(parent, &button_style, false, GameMove::Paper, &button_icon_style, &game_images.paper);
+                                    spawn_game_move_button(parent, &button_style, false, GameMove::Scissors, &button_icon_style, &game_images.scissors);
+
+                                    if *game_type == GameType::SpockLizard {
+                                        spawn_game_move_button(parent, &button_style, false, GameMove::Spock, &button_icon_style, &game_images.spock);
+                                        spawn_game_move_button(parent, &button_style, false, GameMove::Lizard, &button_icon_style, &game_images.lizard);
+                                    } else if *game_type == GameType::FireWater {
+                                        spawn_game_move_button(parent, &button_style, false, GameMove::Fire, &button_icon_style, &game_images.fire);
+                                        spawn_game_move_button(parent, &button_style, false, GameMove::Water, &button_icon_style, &game_images.water);
+                                    }
+                                });
+
+                            parent
+                                .spawn((
+                                    NodeBundle {
+                                        style: Style {
+                                            flex_direction: FlexDirection::Row,
+                                            align_items: AlignItems::End,
+                                            justify_content: JustifyContent::End,
+                                            align_content: AlignContent::End,
+                                            width: Val::Percent(100.0),
                                             ..default()
-                                        }),
-                                    );
+                                        },
+                                        ..default()
+                                    },
+                                    OnGamePanel,
+                                ))
+                                .with_children(|parent| {
+                                    parent
+                                        .spawn(NodeBundle {
+                                            style: Style {
+                                                width: Val::Px(250.0),
+                                                height: Val::Px(50.0),
+                                                margin: UiRect::all(Val::Px(10.0)),
+                                                border: UiRect::all(Val::Px(5.0)),
+                                                justify_content: JustifyContent::Center,
+                                                align_items: AlignItems::Center,
+                                                ..default()
+                                            },
+                                            border_color: Color::WHITE.into(),
+                                            ..default()
+                                        })
+                                        .with_children(|parent| {
+                                            parent.spawn(
+                                                TextBundle::from_section(
+                                                    "(F)inish",
+                                                    TextStyle {
+                                                        font_size: BUTTON_TEXT_SIZE,
+                                                        color: BUTTON_TITLE_COLOR,
+                                                        font: font.clone(),
+                                                    },
+                                                )
+                                                .with_style(Style {
+                                                    margin: UiRect::all(Val::Px(10.0)),
+                                                    ..default()
+                                                }),
+                                            );
+                                        });
                                 });
                         });
                 });

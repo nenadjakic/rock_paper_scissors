@@ -6,13 +6,14 @@ pub enum GameType {
     None,
     Normal,
     SpockLizard,
-    FireWater
+    FireWater,
 }
+
 impl GameType {
     pub fn max_number_of_moves(&self) -> i32 {
         match self {
             GameType::Normal => 3,
-            _ => 5
+            _ => 5,
         }
     }
 
@@ -21,13 +22,14 @@ impl GameType {
             GameType::Normal => "rock paper scissors",
             GameType::SpockLizard => "Spock lizard variation",
             GameType::FireWater => "fire water variation",
-            _ => "None"
+            _ => "None",
         }
     }
 }
-impl Into<GameType> for i32 {
-    fn into(self) -> GameType {
-        match self {
+
+impl From<i32> for GameType {
+    fn from(value: i32) -> Self {
+        match value {
             1 => GameType::Normal,
             2 => GameType::SpockLizard,
             3 => GameType::FireWater,

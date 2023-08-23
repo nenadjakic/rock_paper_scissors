@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioControl};
+
 use crate::game_move::GameMove;
 use crate::game_result::GameResult;
+use crate::player_options::PlayerOptions;
 
 pub const TITLE_TEXT: &str = "rock paper scissors";
 pub const TITLE_COLOR: Color = Color::rgb(0.16471, 0.61569, 0.56078);
@@ -17,20 +19,19 @@ pub const GAME_SELECTED_BORDER_COLOR: Color = Color::RED;
 pub const GAME_NO_SELECTED_BORDER_COLOR: Color = Color::ANTIQUE_WHITE;
 
 pub const OVERVIEW_BACKGROUND_COLOR: Color = Color::rgb(0.45098, 0.30980, 0.35294);
-pub const OVERVIEW_TITLE_COLOR: Color = Color::rgb(0.90588,0.43529, 0.31765);
+pub const OVERVIEW_TITLE_COLOR: Color = Color::rgb(0.90588, 0.43529, 0.31765);
 pub const OVERVIEW_SUB_TITLE_COLOR: Color = Color::rgb(0.90588, 0.53529, 0.35039);
 
 pub const CLOSING_DURATION: f32 = 2.0;
 
 #[derive(Resource, Debug, PartialEq, Eq)]
 pub struct GameSettings {
-    pub is_sound_on: bool
+    pub is_sound_on: bool,
 }
+
 impl GameSettings {
     pub fn init() -> Self {
-        Self {
-            is_sound_on: true,
-        }
+        Self { is_sound_on: true }
     }
 }
 
@@ -41,8 +42,9 @@ pub struct GameStatistics {
     pub last_computer_move: Option<GameMove>,
     pub wins: u32,
     pub loses: u32,
-    pub draws: u32
+    pub draws: u32,
 }
+
 impl GameStatistics {
     pub fn init() -> Self {
         Self {
@@ -71,13 +73,12 @@ impl GameStatistics {
 
 #[derive(Resource, Debug, PartialEq, Eq)]
 pub struct SelectedOption {
-    pub value: i32
+    pub value: i32,
 }
+
 impl SelectedOption {
     pub fn init() -> Self {
-        Self {
-            value: 1
-        }
+        Self { value: 1 }
     }
 
     pub fn set_value(&mut self, v: i32) {
@@ -106,6 +107,7 @@ pub enum MenuState {
     NotInit,
     StartMenu,
     SettingsMenu,
+    ChangeName,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, States, Default)]
@@ -126,7 +128,7 @@ pub struct GameSounds {
 }
 
 pub fn setup_game_sounds(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.insert_resource( GameSounds {
+    commands.insert_resource(GameSounds {
         mode_switch: asset_server.load("sounds/light-switch-156813.ogg"),
         win: asset_server.load("sounds/tada-fanfare-a-6313.ogg"),
         lose: asset_server.load("sounds/negative_beeps-6008.ogg"),
@@ -170,6 +172,11 @@ pub struct GameFont(pub Handle<Font>);
 
 pub fn setup_game_font(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(GameFont(asset_server.load("fonts/PressStart2P-Regular.ttf")));
+}
+
+pub fn setup_player_options(mut commands: Commands) {
+    let player_config = PlayerOptions::new();
+    commands.insert_resource(player_config);
 }
 
 pub fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {

@@ -3,8 +3,8 @@ use bevy_kira_audio::prelude::*;
 use std::cmp::min;
 
 use crate::common::*;
+use crate::game_settings::GameSettings;
 use crate::game_type::GameType;
-use crate::player_options::PlayerOptions;
 
 #[derive(Component)]
 pub struct OnStartMenuScreen;
@@ -55,7 +55,10 @@ impl Plugin for MenuPlugin {
             .add_event::<OnKeyPressEvent>()
             .add_systems(OnEnter(AppState::Menu), init_setup_menu)
             .add_systems(OnEnter(MenuState::StartMenu), setup_start_menu)
-            .add_systems(Update, (switch_start_menu_action, confirm_start_menu_action).run_if(in_state(MenuState::StartMenu)))
+            .add_systems(
+                Update,
+                (switch_start_menu_action, confirm_start_menu_action).run_if(in_state(MenuState::StartMenu)),
+            )
             .add_systems(OnExit(MenuState::StartMenu), despawn_screen::<OnStartMenuScreen>)
             .add_systems(OnEnter(MenuState::SettingsMenu), setup_setting_menu)
             .add_systems(
@@ -73,11 +76,10 @@ impl Plugin for MenuPlugin {
 }
 
 pub fn init_setup_menu(mut menu_state: ResMut<NextState<MenuState>>) {
-    debug!("menu::init_setup");
     menu_state.set(MenuState::StartMenu);
 }
 
-pub fn setup_start_menu(mut commands: Commands, game_font: Res<GameFont>, game_images: Res<GameImages>, player_options: Res<PlayerOptions>) {
+pub fn setup_start_menu(mut commands: Commands, game_font: Res<GameFont>, game_images: Res<GameImages>, game_settings: Res<GameSettings>) {
     let button_style = Style {
         flex_direction: FlexDirection::Row,
         width: Val::Px(400.0),
@@ -115,7 +117,7 @@ pub fn setup_start_menu(mut commands: Commands, game_font: Res<GameFont>, game_i
         .with_children(|parent| {
             parent.spawn(
                 (TextBundle::from_section(
-                    player_options.name.clone(),
+                    game_settings.player_options.name.clone(),
                     TextStyle {
                         font: font.clone(),
                         font_size: 16.0,
@@ -169,75 +171,87 @@ pub fn setup_start_menu(mut commands: Commands, game_font: Res<GameFont>, game_i
                             );
                             spawn_start_menu_button(
                                 parent,
-                                Visibility::Visible,
-                                "Normal",
-                                &button_style,
-                                &button_icon_style,
-                                &game_images.joystick,
-                                MenuAction::Normal,
+                                StartMenuButtonOptions {
+                                visibility: Visibility::Visible,
+                                text: "Normal",
+                                button_style: &button_style,
+                                icon_style: &button_icon_style,
+                                icon: &game_images.joystick,
+                                menu_action: MenuAction::Normal,
                                 font,
+                                }
                             );
 
                             spawn_start_menu_button(
                                 parent,
-                                Visibility::Hidden,
-                                "Spock lizard",
-                                &button_style,
-                                &button_icon_style,
-                                &game_images.joystick,
-                                MenuAction::SpockLizard,
-                                font,
+                                StartMenuButtonOptions {
+                                    visibility: Visibility::Hidden,
+                                    text: "Spock lizard",
+                                    button_style: &button_style,
+                                    icon_style: &button_icon_style,
+                                    icon: &game_images.joystick,
+                                    menu_action: MenuAction::SpockLizard,
+                                    font,
+                                }
                             );
 
                             spawn_start_menu_button(
                                 parent,
-                                Visibility::Hidden,
-                                "Fire water",
-                                &button_style,
-                                &button_icon_style,
-                                &game_images.joystick,
-                                MenuAction::FireWater,
-                                font,
+                                StartMenuButtonOptions {
+                                    visibility: Visibility::Hidden,
+                                    text: "Fire water",
+                                    button_style: &button_style,
+                                    icon_style: &button_icon_style,
+                                    icon: &game_images.joystick,
+                                    menu_action: MenuAction::FireWater,
+                                    font,
+                                }
                             );
 
                             spawn_start_menu_button(
                                 parent,
-                                Visibility::Hidden,
-                                "Settings",
-                                &button_style,
-                                &button_icon_style,
-                                &game_images.joystick,
-                                MenuAction::Settings,
-                                font,
+                                StartMenuButtonOptions {
+                                visibility: Visibility::Hidden,
+                                    text: "Settings",
+                                    button_style: &button_style,
+                                    icon_style: &button_icon_style,
+                                    icon: &game_images.joystick,
+                                    menu_action: MenuAction::Settings,
+                                    font,
+                                }
                             );
 
                             spawn_start_menu_button(
                                 parent,
-                                Visibility::Hidden,
-                                "Credits",
-                                &button_style,
-                                &button_icon_style,
-                                &game_images.joystick,
-                                MenuAction::Credits,
-                                font,
+                                StartMenuButtonOptions {
+                                    visibility: Visibility::Hidden,
+                                    text: "Credits",
+                                    button_style: &button_style,
+                                    icon_style: &button_icon_style,
+                                    icon: &game_images.joystick,
+                                    menu_action: MenuAction::Credits,
+                                    font,
+                                }
                             );
 
                             spawn_start_menu_button(
                                 parent,
-                                Visibility::Hidden,
-                                "Exit",
-                                &button_style,
-                                &button_icon_style,
-                                &game_images.joystick,
-                                MenuAction::Exit,
-                                font,
+                                StartMenuButtonOptions {
+                                    visibility: Visibility::Hidden,
+                                    text: "Exit",
+                                    button_style: &button_style,
+                                    icon_style: &button_icon_style,
+                                    icon: &game_images.joystick,
+                                    menu_action: MenuAction::Exit,
+                                    font,
+                                }
                             );
                         });
                 });
         });
 }
 
-pub fn setup_setting_menu(mut commands: Commands, game_font: Res<GameFont>, game_images: Res<GameImages>, settings: Res<GameSettings>, player_options: Res<PlayerOptions>) {
+pub fn setup_setting_menu(mut commands: Commands, game_font: Res<GameFont>, game_images: Res<GameImages>, game_settings: Res<GameSettings>) {
     let button_style = Style {
         flex_direction: FlexDirection::Row,
         width: Val::Px(300.0),
@@ -275,7 +289,7 @@ pub fn setup_setting_menu(mut commands: Commands, game_font: Res<GameFont>, game
         .with_children(|parent| {
             parent.spawn(
                 (TextBundle::from_section(
-                    player_options.name.clone(),
+                    game_settings.player_options.name.clone(),
                     TextStyle {
                         font: font.clone(),
                         font_size: 16.0,
@@ -346,7 +360,7 @@ pub fn setup_setting_menu(mut commands: Commands, game_font: Res<GameFont>, game
 
                                     parent.spawn((
                                         TextBundle::from_section(
-                                            "Sound (".to_string() + if settings.is_sound_on { "On" } else { "Off" } + ")",
+                                            "Sound (".to_string() + if game_settings.is_sound_on { "On" } else { "Off" } + ")",
                                             TextStyle {
                                                 font_size: BUTTON_TEXT_SIZE,
                                                 color: BUTTON_TITLE_COLOR,
@@ -428,7 +442,7 @@ pub fn setup_setting_menu(mut commands: Commands, game_font: Res<GameFont>, game
         });
 }
 
-pub fn setup_change_name_screen(mut commands: Commands, game_font: Res<GameFont>, player_options: Res<PlayerOptions>) {
+pub fn setup_change_name_screen(mut commands: Commands, game_font: Res<GameFont>, game_settings: Res<GameSettings>) {
     let button_style = Style {
         flex_direction: FlexDirection::Row,
         width: Val::Percent(90.0),
@@ -493,7 +507,7 @@ pub fn setup_change_name_screen(mut commands: Commands, game_font: Res<GameFont>
                         .with_children(|parent| {
                             parent.spawn((
                                 TextBundle::from_section(
-                                    player_options.name.clone(),
+                                    game_settings.player_options.name.clone(),
                                     TextStyle {
                                         font_size: BUTTON_TEXT_SIZE,
                                         color: BUTTON_TITLE_COLOR,
@@ -592,38 +606,42 @@ pub fn setup_change_name_screen(mut commands: Commands, game_font: Res<GameFont>
     commands.insert_resource(BlinkingTimer(Timer::from_seconds(0.5, TimerMode::Repeating)));
 }
 
+struct StartMenuButtonOptions<'a> {
+    visibility: Visibility,
+    text: &'a str,
+    button_style: &'a Style,
+    icon_style: &'a Style,
+    icon: &'a Handle<Image>,
+    menu_action: MenuAction,
+    font: &'a Handle<Font>,
+}
+
 fn spawn_start_menu_button(
     parent: &mut ChildBuilder,
-    visibility: Visibility,
-    text: &str,
-    button_style: &Style,
-    icon_style: &Style,
-    icon: &Handle<Image>,
-    menu_action: MenuAction,
-    font: &Handle<Font>,
+    options: StartMenuButtonOptions
 ) {
     parent
         .spawn(NodeBundle {
-            style: button_style.clone(),
+            style: options.button_style.clone(),
             ..default()
         })
         .with_children(|parent| {
             parent.spawn((
                 ImageBundle {
-                    style: icon_style.clone(),
-                    image: UiImage::new(icon.clone()),
-                    visibility,
+                    style: options.icon_style.clone(),
+                    image: UiImage::new(options.icon.clone()),
+                    visibility: options.visibility,
                     ..default()
                 },
-                menu_action,
+                options.menu_action,
             ));
             parent.spawn(
                 TextBundle::from_section(
-                    text,
+                    options.text,
                     TextStyle {
                         font_size: BUTTON_TEXT_SIZE,
                         color: BUTTON_TITLE_COLOR,
-                        font: font.clone(),
+                        font: options.font.clone(),
                     },
                 )
                 .with_style(Style {
@@ -641,7 +659,7 @@ pub fn switch_start_menu_action(
     audio: Res<Audio>,
     game_sounds: Res<GameSounds>,
     mut selected_option: ResMut<SelectedOption>,
-    settings: Res<GameSettings>,
+    game_settings: Res<GameSettings>,
 ) {
     let mut up_or_down = false;
     if keyboard_input.just_pressed(KeyCode::Up) {
@@ -709,7 +727,7 @@ pub fn switch_start_menu_action(
             }
         }
 
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
 }
 
@@ -719,7 +737,7 @@ pub fn switch_settings_menu_action(
     audio: Res<Audio>,
     game_sounds: Res<GameSounds>,
     mut selected_option: ResMut<SelectedOption>,
-    settings: Res<GameSettings>,
+    game_settings: Res<GameSettings>,
 ) {
     let mut up_or_down = false;
     if keyboard_input.just_pressed(KeyCode::Up) {
@@ -761,7 +779,7 @@ pub fn switch_settings_menu_action(
                 }
             }
         }
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
 }
 
@@ -769,7 +787,7 @@ pub fn confirm_settings_menu_action(
     keyboard_input: Res<Input<KeyCode>>,
     mut selected_option: ResMut<SelectedOption>,
     mut menu_state: ResMut<NextState<MenuState>>,
-    mut settings: ResMut<GameSettings>,
+    mut game_settings: ResMut<GameSettings>,
     mut query: Query<&mut Text, With<OnGameSound>>,
     audio: Res<Audio>,
     game_sounds: Res<GameSounds>,
@@ -777,9 +795,10 @@ pub fn confirm_settings_menu_action(
     if keyboard_input.any_just_pressed([KeyCode::Return, KeyCode::Space]) {
         debug!("Menu from Settings to Start menu.");
         if selected_option.value == 1 {
-            settings.is_sound_on = !settings.is_sound_on;
+            game_settings.is_sound_on = !game_settings.is_sound_on;
             let mut text = query.single_mut();
-            text.sections[0].value = "Sound (".to_string() + if settings.is_sound_on { "On" } else { "Off" } + ")";
+            text.sections[0].value = "Sound (".to_string() + if game_settings.is_sound_on { "On" } else { "Off" } + ")";
+            game_settings.fetch();
         } else if selected_option.value == 2 {
             selected_option.set_value(1);
             menu_state.set(MenuState::ChangeName);
@@ -787,7 +806,7 @@ pub fn confirm_settings_menu_action(
             selected_option.set_value(1);
             menu_state.set(MenuState::StartMenu);
         }
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
 }
 
@@ -799,7 +818,7 @@ pub fn confirm_start_menu_action(
     mut game_type: ResMut<GameType>,
     audio: Res<Audio>,
     game_sounds: Res<GameSounds>,
-    settings: ResMut<GameSettings>,
+    game_settings: ResMut<GameSettings>,
 ) {
     if keyboard_input.any_just_pressed([KeyCode::Return, KeyCode::Space]) {
         if selected_option.value == 1 {
@@ -829,7 +848,7 @@ pub fn confirm_start_menu_action(
             app_state.set(AppState::Closing);
         }
 
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
 }
 
@@ -862,8 +881,7 @@ pub fn on_key_press_event_listener(
     mut query_border: Query<(&mut BorderColor, &SaveCancelAction), With<SaveCancelAction>>,
     audio: Res<Audio>,
     game_sounds: Res<GameSounds>,
-    settings: Res<GameSettings>,
-    mut player_options: ResMut<PlayerOptions>,
+    mut game_settings: ResMut<GameSettings>,
     mut menu_state: ResMut<NextState<MenuState>>,
 ) {
     for event in on_key_press_events.iter() {
@@ -881,22 +899,22 @@ pub fn on_key_press_event_listener(
                     if let SaveCancelAction::Save = action {
                         if border_color.0 == GAME_SELECTED_BORDER_COLOR {
                             let text = query.single();
-                            player_options.name = text.sections[0].value.replace('|', "").clone();
-                            player_options.push();
+                            game_settings.player_options.name = text.sections[0].value.replace('|', "").clone();
+                            game_settings.fetch();
                         }
                     }
                     menu_state.set(MenuState::SettingsMenu)
                 }
             }
-            play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+            play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
         } else {
             let mut text = query.single_mut();
-            text.sections[0].value = get_new_text_value(text.sections[0].value.clone(), &event.key_code, &audio, &game_sounds, &settings);
+            text.sections[0].value = get_new_text_value(text.sections[0].value.clone(), &event.key_code, &audio, &game_sounds, &game_settings);
         }
     }
 }
 
-fn get_new_text_value(text: String, pressed: &KeyCode, audio: &Res<Audio>, game_sounds: &Res<GameSounds>, settings: &Res<GameSettings>) -> String {
+fn get_new_text_value(text: String, pressed: &KeyCode, audio: &Res<Audio>, game_sounds: &Res<GameSounds>, game_settings: &ResMut<GameSettings>) -> String {
     let mut produce_sound_remove_blinking_indicator = true;
     let mut new_text_value = text.clone();
     if pressed == &KeyCode::Back {
@@ -964,7 +982,7 @@ fn get_new_text_value(text: String, pressed: &KeyCode, audio: &Res<Audio>, game_
     if produce_sound_remove_blinking_indicator {
         new_text_value = new_text_value.replace('|', "");
         new_text_value = new_text_value[..min(50, new_text_value.len())].to_string();
-        play_sound(audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
     new_text_value
 }

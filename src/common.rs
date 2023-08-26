@@ -3,7 +3,7 @@ use bevy_kira_audio::{Audio, AudioControl};
 
 use crate::game_move::GameMove;
 use crate::game_result::GameResult;
-use crate::player_options::PlayerOptions;
+use crate::game_settings::GameSettings;
 
 pub const TITLE_TEXT: &str = "rock paper scissors";
 pub const TITLE_COLOR: Color = Color::rgb(0.16471, 0.61569, 0.56078);
@@ -23,17 +23,6 @@ pub const OVERVIEW_TITLE_COLOR: Color = Color::rgb(0.90588, 0.43529, 0.31765);
 pub const OVERVIEW_SUB_TITLE_COLOR: Color = Color::rgb(0.90588, 0.53529, 0.35039);
 
 pub const CLOSING_DURATION: f32 = 2.0;
-
-#[derive(Resource, Debug, PartialEq, Eq)]
-pub struct GameSettings {
-    pub is_sound_on: bool,
-}
-
-impl GameSettings {
-    pub fn init() -> Self {
-        Self { is_sound_on: true }
-    }
-}
 
 #[derive(Resource, Debug, PartialEq, Eq)]
 pub struct GameStatistics {
@@ -120,6 +109,13 @@ pub enum GameState {
 }
 
 #[derive(Debug, Resource)]
+pub struct GameResources {
+    pub sounds: GameSounds,
+    pub images: GameImages,
+    pub font: GameFont,
+}
+
+#[derive(Debug, Resource)]
 pub struct GameSounds {
     pub mode_switch: Handle<bevy_kira_audio::AudioSource>,
     pub win: Handle<bevy_kira_audio::AudioSource>,
@@ -174,11 +170,10 @@ pub fn setup_game_font(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(GameFont(asset_server.load("fonts/PressStart2P-Regular.ttf")));
 }
 
-pub fn setup_player_options(mut commands: Commands) {
-    let player_config = PlayerOptions::new();
-    commands.insert_resource(player_config);
+pub fn setup_game_settings(mut commands: Commands) {
+    let game_settings = GameSettings::init();
+    commands.insert_resource(game_settings);
 }
-
 pub fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
     for entity in &to_despawn {
         commands.entity(entity).despawn_recursive();

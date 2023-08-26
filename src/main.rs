@@ -9,6 +9,7 @@ use crate::common::*;
 use crate::credits::CreditsPlugin;
 use crate::game::GamePlugin;
 use crate::game_overview::GameOverviewPlugin;
+use crate::game_settings::GameSettings;
 use crate::game_type::GameType;
 use crate::menu::MenuPlugin;
 
@@ -19,6 +20,7 @@ mod game;
 mod game_move;
 mod game_overview;
 mod game_result;
+mod game_settings;
 mod game_type;
 mod menu;
 mod player_options;
@@ -47,7 +49,10 @@ fn main() {
         .insert_resource(SelectedOption::init())
         .insert_resource(GameSettings::init())
         .insert_resource(GameStatistics::init())
-        .add_systems(Startup, (setup_camera, setup_game_sounds, setup_game_images, setup_game_font, setup_player_options))
+        .add_systems(
+            Startup,
+            (setup_camera, setup_game_sounds, setup_game_images, setup_game_font, setup_game_settings),
+        )
         .add_plugins((MenuPlugin, ClosingPlugin, GamePlugin, GameOverviewPlugin, CreditsPlugin))
         .run();
 }

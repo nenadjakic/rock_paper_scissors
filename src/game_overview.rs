@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_kira_audio::Audio;
 
 use crate::common::*;
-use crate::player_options::PlayerOptions;
+use crate::game_settings::GameSettings;
 
 #[derive(Component)]
 pub struct OnGameOverview;
@@ -17,7 +17,7 @@ impl Plugin for GameOverviewPlugin {
     }
 }
 
-pub fn setup_score_overview_screen(mut commands: Commands, game_font: Res<GameFont>, statistics: Res<GameStatistics>, player_options: Res<PlayerOptions>) {
+pub fn setup_score_overview_screen(mut commands: Commands, game_font: Res<GameFont>, game_statistics: Res<GameStatistics>, game_settings: Res<GameSettings>) {
     let font = &game_font.0;
 
     commands
@@ -38,7 +38,7 @@ pub fn setup_score_overview_screen(mut commands: Commands, game_font: Res<GameFo
         .with_children(|parent| {
             parent.spawn(
                 (TextBundle::from_section(
-                    player_options.name.clone(),
+                    game_settings.player_options.name.clone(),
                     TextStyle {
                         font: font.clone(),
                         font_size: 16.0,
@@ -95,10 +95,10 @@ pub fn setup_score_overview_screen(mut commands: Commands, game_font: Res<GameFo
                                 TextBundle::from_section(
                                     format!(
                                         "Total: {0}, wins: {1}, loses: {2}, draws: {3}",
-                                        statistics.totals(),
-                                        statistics.wins,
-                                        statistics.loses,
-                                        statistics.draws
+                                        game_statistics.totals(),
+                                        game_statistics.wins,
+                                        game_statistics.loses,
+                                        game_statistics.draws
                                     ),
                                     TextStyle {
                                         font_size: 32.0,
@@ -165,16 +165,16 @@ pub fn confirm_button_action(
     keyboard_input: Res<Input<KeyCode>>,
     mut app_state: ResMut<NextState<AppState>>,
     mut game_state: ResMut<NextState<GameState>>,
-    mut statistics: ResMut<GameStatistics>,
+    mut game_statistics: ResMut<GameStatistics>,
     audio: Res<Audio>,
-    settings: Res<GameSettings>,
+    game_settings: Res<GameSettings>,
     game_sounds: Res<GameSounds>,
 ) {
     if keyboard_input.just_pressed(KeyCode::C) {
-        statistics.reset_scores();
+        game_statistics.reset_scores();
         game_state.set(GameState::NotInit);
         app_state.set(AppState::Menu);
 
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
 }

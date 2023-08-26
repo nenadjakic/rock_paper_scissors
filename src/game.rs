@@ -7,8 +7,8 @@ use rand::Rng;
 use crate::common::*;
 use crate::game_move::GameMove;
 use crate::game_result::GameResult;
+use crate::game_settings::GameSettings;
 use crate::game_type::GameType;
-use crate::player_options::PlayerOptions;
 
 #[derive(Component)]
 pub struct OnGameScreen;
@@ -27,7 +27,10 @@ impl Plugin for GamePlugin {
             .add_systems(OnEnter(AppState::Playing), init_game_setup)
             .add_systems(OnEnter(GameState::PlayerMoveRender), setup_game_screen)
             .add_systems(OnEnter(GameState::PlayerMove), setup_player_move_screen)
-            .add_systems(Update, (switch_game_move, confirm_button_action, confirm_game_move).run_if(in_state(GameState::PlayerMove)))
+            .add_systems(
+                Update,
+                (switch_game_move, confirm_button_action, confirm_game_move).run_if(in_state(GameState::PlayerMove)),
+            )
             .add_systems(Update, confirm_sub_button_action.run_if(in_state(GameState::RoundFinish)))
             .add_systems(OnEnter(GameState::RoundFinish), setup_round_overview_screen)
             .add_systems(OnExit(GameState::RoundFinish), despawn_screen::<OnRoundOverview>)
@@ -45,7 +48,7 @@ pub fn setup_game_screen(
     game_font: Res<GameFont>,
     game_images: Res<GameImages>,
     game_type: Res<GameType>,
-    player_options: Res<PlayerOptions>,
+    game_settings: Res<GameSettings>,
 ) {
     let button_style = Style {
         width: Val::Px(250.0),
@@ -83,7 +86,7 @@ pub fn setup_game_screen(
         .with_children(|parent| {
             parent.spawn(
                 (TextBundle::from_section(
-                    player_options.name.clone(),
+                    game_settings.player_options.name.clone(),
                     TextStyle {
                         font: font.clone(),
                         font_size: 16.0,
@@ -283,7 +286,7 @@ pub fn setup_player_move_screen(
     }
 }
 
-pub fn setup_round_overview_screen(mut commands: Commands, game_font: Res<GameFont>, statistics: Res<GameStatistics>) {
+pub fn setup_round_overview_screen(mut commands: Commands, game_font: Res<GameFont>, game_statistics: Res<GameStatistics>) {
     let font = &game_font.0;
 
     commands
@@ -307,7 +310,7 @@ pub fn setup_round_overview_screen(mut commands: Commands, game_font: Res<GameFo
         .with_children(|parent| {
             parent.spawn(
                 TextBundle::from_section(
-                    statistics.last_round_result.expect("Last result is not set.").get_friendly_name(),
+                    game_statistics.last_round_result.expect("Last result is not set.").get_friendly_name(),
                     TextStyle {
                         font: font.clone(),
                         font_size: 48.0,
@@ -323,8 +326,8 @@ pub fn setup_round_overview_screen(mut commands: Commands, game_font: Res<GameFo
             parent.spawn(
                 TextBundle::from_section(
                     GameMove::get_phrase(
-                        &statistics.last_player_move.expect("Last player move is not set."),
-                        &statistics.last_computer_move.expect("Last computer move is not set."),
+                        &game_statistics.last_player_move.expect("Last player move is not set."),
+                        &game_statistics.last_computer_move.expect("Last computer move is not set."),
                     ),
                     TextStyle {
                         font: font.clone(),
@@ -340,7 +343,10 @@ pub fn setup_round_overview_screen(mut commands: Commands, game_font: Res<GameFo
 
             parent.spawn(
                 TextBundle::from_section(
-                    format!("Wins: {0}, Loses: {1}, Draws: {2}", statistics.wins, statistics.loses, statistics.draws),
+                    format!(
+                        "Wins: {0}, Loses: {1}, Draws: {2}",
+                        game_statistics.wins, game_statistics.loses, game_statistics.draws
+                    ),
                     TextStyle {
                         font: font.clone(),
                         font_size: 16.0,
@@ -461,19 +467,19 @@ pub fn confirm_sub_button_action(
     mut app_state: ResMut<NextState<AppState>>,
     audio: Res<Audio>,
     game_sounds: Res<GameSounds>,
-    settings: Res<GameSettings>,
+    game_settings: Res<GameSettings>,
 ) {
     if keyboard_input.just_pressed(KeyCode::C) {
         selected_option.set_value(1);
         game_state.set(GameState::PlayerMove);
 
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     } else if keyboard_input.just_pressed(KeyCode::F) {
         selected_option.set_value(1);
         game_state.set(GameState::NotInit);
         app_state.set(AppState::GameOverview);
 
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
 }
 
@@ -485,19 +491,19 @@ pub fn confirm_button_action(
     mut menu_state: ResMut<NextState<MenuState>>,
     audio: Res<Audio>,
     game_sounds: Res<GameSounds>,
-    settings: ResMut<GameSettings>,
-    statistics: Res<GameStatistics>,
+    game_settings: ResMut<GameSettings>,
+    game_statistics: Res<GameStatistics>,
 ) {
     if keyboard_input.just_pressed(KeyCode::F) {
         selected_option.set_value(1);
-        if statistics.last_round_result.is_none() {
+        if game_statistics.last_round_result.is_none() {
             game_state.set(GameState::NotInit);
             menu_state.set(MenuState::StartMenu);
             app_state.set(AppState::Menu);
         } else {
             app_state.set(AppState::GameOverview);
         }
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
 }
 
@@ -507,7 +513,7 @@ pub fn switch_game_move(
     mut selected_option: ResMut<SelectedOption>,
     audio: Res<Audio>,
     game_sounds: Res<GameSounds>,
-    settings: Res<GameSettings>,
+    game_settings: Res<GameSettings>,
     game_type: Res<GameType>,
 ) {
     let mut left_or_down: bool = false;
@@ -581,7 +587,7 @@ pub fn switch_game_move(
                 }
             }
         }
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
 }
 
@@ -594,7 +600,7 @@ pub fn confirm_game_move(
     game_type: Res<GameType>,
     mut statistics: ResMut<GameStatistics>,
     mut game_state: ResMut<NextState<GameState>>,
-    settings: Res<GameSettings>,
+    game_settings: Res<GameSettings>,
 ) {
     if keyboard_input.any_just_pressed([KeyCode::Return, KeyCode::Space]) {
         let player_move: Option<GameMove> = GameMove::from_i32(*game_type, selected_option.get_value());
@@ -630,7 +636,7 @@ pub fn confirm_game_move(
             GameResult::Lose => &game_sounds.lose,
             GameResult::Draw => &game_sounds.drawn,
         };
-        play_sound(&audio, settings.is_sound_on, result_sound);
+        play_sound(&audio, game_settings.is_sound_on, result_sound);
     }
 }
 

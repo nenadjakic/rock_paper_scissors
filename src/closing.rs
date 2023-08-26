@@ -21,8 +21,8 @@ impl Plugin for ClosingPlugin {
     }
 }
 
-fn setup_closing_screen(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let font: Handle<Font> = asset_server.load("fonts/PressStart2P-Regular.ttf");
+fn setup_closing_screen(mut commands: Commands, game_font: Res<GameFont>) {
+    let font = &game_font.0;
 
     commands
         .spawn((

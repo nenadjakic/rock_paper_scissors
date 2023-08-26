@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_kira_audio::Audio;
 
 use crate::common::*;
-use crate::player_options::PlayerOptions;
+use crate::game_settings::GameSettings;
 
 #[derive(Component)]
 pub struct OnCreditsScreen;
@@ -17,7 +17,7 @@ impl Plugin for CreditsPlugin {
     }
 }
 
-pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>, player_options: Res<PlayerOptions>) {
+pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>, game_settings: Res<GameSettings>) {
     let font = &game_font.0;
     let header_style = TextStyle {
         font: font.clone(),
@@ -52,7 +52,7 @@ pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>, pl
         .with_children(|parent| {
             parent.spawn(
                 (TextBundle::from_section(
-                    player_options.name.clone(),
+                    game_settings.player_options.name.clone(),
                     TextStyle {
                         font: font.clone(),
                         font_size: 16.0,
@@ -110,7 +110,10 @@ pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>, pl
                                 ..default()
                             }));
 
-                            parent.spawn(TextBundle::from_section("Nenad Jakic", body_style.clone()).with_style(Style { margin: body_margin, ..default() }));
+                            parent.spawn(TextBundle::from_section("Nenad Jakic", body_style.clone()).with_style(Style {
+                                margin: body_margin,
+                                ..default()
+                            }));
 
                             parent.spawn(TextBundle::from_section("Images", header_style.clone()).with_style(Style {
                                 margin: header_margin,
@@ -122,7 +125,10 @@ pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>, pl
                                     "Downloaded from web site: https://icons8.com, free for personal and commercial use licence.",
                                     body_style.clone(),
                                 )
-                                .with_style(Style { margin: body_margin, ..default() }),
+                                .with_style(Style {
+                                    margin: body_margin,
+                                    ..default()
+                                }),
                             );
 
                             parent.spawn(TextBundle::from_section("Sounds", header_style.clone()).with_style(Style {
@@ -132,7 +138,10 @@ pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>, pl
 
                             parent.spawn(
                                 TextBundle::from_section("Downloaded from web site: https://pixabay.com/, free for use licence.", body_style.clone())
-                                    .with_style(Style { margin: body_margin, ..default() }),
+                                    .with_style(Style {
+                                        margin: body_margin,
+                                        ..default()
+                                    }),
                             );
 
                             parent.spawn(TextBundle::from_section("Fonts", header_style.clone()).with_style(Style {
@@ -141,8 +150,14 @@ pub fn setup_credits_screen(mut commands: Commands, game_font: Res<GameFont>, pl
                             }));
 
                             parent.spawn(
-                                TextBundle::from_section("Downloaded from web site: https://fonts.google.com/, licensed under Open Font Licence.", body_style.clone())
-                                    .with_style(Style { margin: body_margin, ..default() }),
+                                TextBundle::from_section(
+                                    "Downloaded from web site: https://fonts.google.com/, licensed under Open Font Licence.",
+                                    body_style.clone(),
+                                )
+                                .with_style(Style {
+                                    margin: body_margin,
+                                    ..default()
+                                }),
                             );
 
                             parent
@@ -199,12 +214,12 @@ pub fn confirm_button_action(
     keyboard_input: Res<Input<KeyCode>>,
     mut app_state: ResMut<NextState<AppState>>,
     audio: Res<Audio>,
-    settings: Res<GameSettings>,
+    game_settings: Res<GameSettings>,
     game_sounds: Res<GameSounds>,
 ) {
     if keyboard_input.just_pressed(KeyCode::B) {
         app_state.set(AppState::Menu);
 
-        play_sound(&audio, settings.is_sound_on, &game_sounds.mode_switch);
+        play_sound(&audio, game_settings.is_sound_on, &game_sounds.mode_switch);
     }
 }
